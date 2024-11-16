@@ -15,7 +15,7 @@ env:
   IMAGE_REGISTRY: "docker.io/mridul017" # Docker Hub or other registry
   IMAGE_REGISTRY_USER: "mridul017"
   IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
-  IMAGE_TAGS: "latest-${{ github.sha }}" # Dynamic tagging for better versioning
+  IMAGE_TAG: "latest-${{ github.sha }}" # Dynamic tagging for better versioning
 
 jobs:
   build-and-deploy:
@@ -35,19 +35,18 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }} \
+            -t ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }} \
             -f ./Dockerfile \
             .
           echo "IMAGE_NAME=${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}" >> $GITHUB_ENV
-          echo "IMAGE_TAGS=${{ env.IMAGE_TAGS }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
 
       # Step 4: Push Docker Image to Registry
-      - name: Push to registry
-        id: push-image
+      - name: Push to Registry
         uses: redhat-actions/push-to-registry@v2
         with:
           image: ${{ env.IMAGE_NAME }}
-          tags: ${{ env.IMAGE_TAGS }}
+          tags: ${{ env.IMAGE_TAG }}
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.IMAGE_REGISTRY_USER }}
           password: ${{ env.IMAGE_REGISTRY_PASSWORD }}
@@ -74,11 +73,10 @@ jobs:
 
       # Step 8: Deploy and Expose OpenShift App
       - name: Deploy and Expose OpenShift App
-        id: deploy-and-expose
         uses: redhat-actions/oc-new-app@v1
         with:
           app_name: ${{ env.APP_NAME }}
-          image: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAGS }}
+          image: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
           port: ${{ env.APP_PORT }}
 
