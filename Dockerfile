@@ -20,6 +20,9 @@ RUN swag init
 # Build the Go app
 RUN go build -o main .
 
+# Set executable permissions in the build stage to ensure it's carried over
+RUN chmod +x ./main
+
 # Start a new stage from scratch
 FROM alpine:latest  
 
@@ -28,9 +31,6 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the builder stage
 COPY --from=builder /app/main .
-
-# Make the binary executable
-RUN chmod +x ./main
 
 # Expose port 8082 to the outside world
 EXPOSE 8082
