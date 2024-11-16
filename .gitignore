@@ -1,0 +1,17 @@
+# Ignore the Go module files (if you want to avoid exposing dependency details)
+go.sum
+
+# Ignore binary files
+main
+
+# Ignore Swagger docs (if they contain sensitive info)
+docs/
+
+# Ignore temporary files or folders
+*.log
+*.tmp
+/tmp/
+
+# Ignore Docker-related files (if not all should be pushed)
+docker-compose.yml
+*.env
