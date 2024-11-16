@@ -31,8 +31,8 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs ./docs
 
-# Expose port 8080 to the outside world
-EXPOSE 8080
+# Expose port 8082 to the outside world
+EXPOSE 8082
 
 # Command to run the executable
 CMD ["./main"]
