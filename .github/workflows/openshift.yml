@@ -42,15 +42,10 @@ jobs:
           echo "IMAGE_TAGS=${{ env.IMAGE_TAGS }}" >> $GITHUB_ENV
 
 
-      # Step 4: Push Docker Image to Registry
-      - name: Push to Registry
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ env.IMAGE_NAME }}
-          tags: ${{ env.IMAGE_TAGS }}
-          registry: ${{ env.IMAGE_REGISTRY }}
-          username: ${{ env.IMAGE_REGISTRY_USER }}
-          password: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
+      - name: Push Docker Image to Registry
+        run: |
+          docker push ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REGISTRY_USER }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }}
+        
 
       # Step 5: Install OpenShift CLI
       - name: Install OpenShift CLI
