@@ -1,1 +1,1 @@
-# go-microservice
+# openshiftGo
