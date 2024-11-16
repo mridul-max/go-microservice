@@ -99,4 +99,4 @@ jobs:
           ROUTE=$(oc get route ${{ env.APP_NAME }} -o jsonpath='{.spec.host}')
           echo "========================="
           echo "Your app is available at: http://$ROUTE"
-          echo "========================="
+          echo "====================="
