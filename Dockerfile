@@ -32,6 +32,9 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the builder stage
 COPY --from=builder /app/main .
 
+# Explicitly set execute permissions in the final stage
+RUN chmod +x /root/main
+
 # Expose port 8082 to the outside world
 EXPOSE 8082
 
