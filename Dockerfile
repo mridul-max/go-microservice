@@ -31,6 +31,13 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs ./docs
 
+# Ensure the binary is executable
+RUN chmod +x ./main
+
+# Set the correct user if running under OpenShift
+RUN chown 1001:1001 ./main
+USER 1001
+
 # Expose port 8082 to the outside world
 EXPOSE 8082
 
