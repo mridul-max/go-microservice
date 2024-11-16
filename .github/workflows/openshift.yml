@@ -33,23 +33,21 @@ jobs:
 
       # Step 3: Build Docker Image
       - name: Build Docker Image
-        id: build-image
         run: |
           docker build \
             -t ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }} \
             -f ./Dockerfile \
             .
-        outputs:
-          image: ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}
-          tags: ${{ env.IMAGE_TAGS }}
+          echo "IMAGE_NAME=${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}" >> $GITHUB_ENV
+          echo "IMAGE_TAGS=${{ env.IMAGE_TAGS }}" >> $GITHUB_ENV
 
       # Step 4: Push Docker Image to Registry
       - name: Push to registry
         id: push-image
         uses: redhat-actions/push-to-registry@v2
         with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ env.IMAGE_TAGS }}
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.IMAGE_REGISTRY_USER }}
           password: ${{ env.IMAGE_REGISTRY_PASSWORD }}
@@ -80,7 +78,7 @@ jobs:
         uses: redhat-actions/oc-new-app@v1
         with:
           app_name: ${{ env.APP_NAME }}
-          image: ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }}
+          image: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAGS }}
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
           port: ${{ env.APP_PORT }}
 
