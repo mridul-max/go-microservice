@@ -1,3 +1,10 @@
+name: Deploy Go Microservice to OpenShift
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
 env:
   # OpenShift and Docker Registry Secrets
   OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
@@ -8,7 +15,7 @@ env:
   IMAGE_REGISTRY: "docker.io"  # Docker Hub or other registry
   IMAGE_REGISTRY_USER: "mridul017"
   IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
-  IMAGE_TAGS: "latest"  # Simplified tagging
+  IMAGE_TAGS: "latest"  # Simplified tagging for deployments
 
 jobs:
   build-and-deploy:
