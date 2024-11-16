@@ -12,10 +12,11 @@ env:
   OPENSHIFT_NAMESPACE: "kilo-dev" # Replace with your namespace
   APP_NAME: "go-drinkapp" # Replace with your app name
   APP_PORT: "8082" # Replace with your app's listening port
-  IMAGE_REGISTRY: "docker.io/mridul017" # Docker Hub or other registry
+  IMAGE_REGISTRY: "docker.io" # Docker Hub or other registry
   IMAGE_REGISTRY_USER: "mridul017"
   IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
   IMAGE_TAG: ${{ github.sha }} # Dynamic tagging for better versioning
+  IMAGE_NAME: "${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}"
 
 jobs:
   build-and-deploy:
@@ -35,10 +36,10 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }} \
+            -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
             -f ./Dockerfile \
             .
-          echo "IMAGE_NAME=${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.IMAGE_NAME }}" >> $GITHUB_ENV
           echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
 
       # Step 4: Push Docker Image to Registry
@@ -55,7 +56,7 @@ jobs:
       - name: Install OpenShift CLI
         uses: redhat-actions/openshift-tools-installer@v1
         with:
-          oc: 4.6.0 # Updated version
+          oc: 4.6.0 # You can update this version as needed
 
       # Step 6: Log in to OpenShift
       - name: Log in to OpenShift
