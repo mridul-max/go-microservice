@@ -15,8 +15,7 @@ env:
   IMAGE_REGISTRY: "docker.io" # Docker Hub or other registry
   IMAGE_REGISTRY_USER: "mridul017"
   IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
-  IMAGE_TAG: ${{ github.sha }} # Dynamic tagging for better versioning
-  IMAGE_NAME: "${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}"
+  IMAGE_TAGS: ${{ github.sha }} # Dynamic tagging for better versioning
 
 jobs:
   build-and-deploy:
@@ -36,18 +35,18 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAGS }} \
             -f ./Dockerfile \
             .
           echo "IMAGE_NAME=${{ env.IMAGE_NAME }}" >> $GITHUB_ENV
-          echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "IMAGE_TAGS=${{ env.IMAGE_TAGS }}" >> $GITHUB_ENV
 
       # Step 4: Push Docker Image to Registry
       - name: Push to Registry
         uses: redhat-actions/push-to-registry@v2
         with:
           image: ${{ env.IMAGE_NAME }}
-          tags: ${{ env.IMAGE_TAG }}
+          tags: ${{ env.IMAGE_TAGS }}
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.IMAGE_REGISTRY_USER }}
           password: ${{ env.IMAGE_REGISTRY_PASSWORD }}
@@ -77,7 +76,7 @@ jobs:
         uses: redhat-actions/oc-new-app@v1
         with:
           app_name: ${{ env.APP_NAME }}
-          image: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          image: ${{ env.IMAGE_NAME }} : ${{ env.IMAGE_TAGS }}
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
           port: ${{ env.APP_PORT }}
 
