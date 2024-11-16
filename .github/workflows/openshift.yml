@@ -6,18 +6,16 @@ on:
   workflow_dispatch:
 
 env:
-  # Secrets for OpenShift access
+  # OpenShift and Docker Registry Secrets
   OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
   OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
-  OPENSHIFT_NAMESPACE: "kilo-dev" # Change to your namespace
-  APP_NAME: "go-drinkapp" # Change to your app name
-  APP_PORT: "8082" # Port your app listens to
-  IMAGE_REGISTRY: "docker.io/mridul017" # Docker Hub username or other registry
-  IMAGE_REGISTRY_USER: "mridul017" # Docker Hub username
+  OPENSHIFT_NAMESPACE: "kilo-dev" # Replace with your namespace
+  APP_NAME: "go-drinkapp" # Replace with your app name
+  APP_PORT: "8082" # Replace with your app's listening port
+  IMAGE_REGISTRY: "docker.io/mridul017" # Docker Hub or other registry
+  IMAGE_REGISTRY_USER: "mridul017"
   IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
-
-  # Default tag using git commit hash for better versioning
-  IMAGE_TAGS: ${{ github.sha }}
+  IMAGE_TAGS: "latest-${{ github.sha }}" # Dynamic tagging for better versioning
 
 jobs:
   build-and-deploy:
@@ -33,13 +31,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Step 3: Install OpenShift CLI
-      - name: Install OpenShift CLI
-        uses: redhat-actions/openshift-tools-installer@v1
-        with:
-          oc: 4.6.0
-
-      # Step 4: Build Docker Image
+      # Step 3: Build Docker Image
       - name: Build Docker Image
         id: build-image
         run: |
@@ -48,12 +40,18 @@ jobs:
             -f ./Dockerfile \
             .
 
-      # Step 5: Push Docker Image to Docker Hub
+      # Step 4: Push Docker Image to Docker Hub
       - name: Push Docker Image to Docker Hub
         id: push-image
         run: |
-          echo "${{ secrets.IMAGE_REGISTRY_PASSWORD }}" | docker login ${{ env.IMAGE_REGISTRY }} -u ${{ env.IMAGE_REGISTRY_USER }} --password-stdin
+          echo "${{ env.IMAGE_REGISTRY_PASSWORD }}" | docker login ${{ env.IMAGE_REGISTRY }} -u ${{ env.IMAGE_REGISTRY_USER }} --password-stdin
           docker push ${{ env.IMAGE_REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }}
+
+      # Step 5: Install OpenShift CLI
+      - name: Install OpenShift CLI
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: 4.6.0 # Updated version
 
       # Step 6: Log in to OpenShift
       - name: Log in to OpenShift
@@ -64,7 +62,12 @@ jobs:
           insecure_skip_tls_verify: true
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
 
-      # Step 7: Deploy Application on OpenShift
+      # Step 7: Delete Existing Resources (if any)
+      - name: Delete Existing Resources
+        run: |
+          oc delete all --selector app=${{ env.APP_NAME }} --ignore-not-found
+
+      # Step 8: Deploy and Expose OpenShift App
       - name: Deploy and Expose OpenShift App
         id: deploy-and-expose
         uses: redhat-actions/oc-new-app@v1
@@ -74,7 +77,7 @@ jobs:
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
           port: ${{ env.APP_PORT }}
 
-      # Step 8: Inject Environment Variables
+      # Step 9: Inject Environment Variables
       - name: Inject Environment Variables
         run: |
           oc set env deployment/${{ env.APP_NAME }} \
@@ -82,13 +85,15 @@ jobs:
             DBKEY=${{ secrets.DBKEY }} \
             DBNAME=${{ secrets.DBNAME }}
 
-      # Step 9: Wait for Deployment Rollout
+      # Step 10: Wait for Deployment Rollout
       - name: Wait for Deployment Rollout
         run: |
           oc rollout status deployment/${{ env.APP_NAME }} --watch
 
-      # Step 10: Print Application URL
+      # Step 11: Print Application URL
       - name: Print Application URL
         run: |
           ROUTE=$(oc get route ${{ env.APP_NAME }} -o jsonpath='{.spec.host}')
+          echo "========================="
           echo "Your app is available at: http://$ROUTE"
+          echo "========================="
