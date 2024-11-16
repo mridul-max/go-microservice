@@ -35,11 +35,12 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAGS }} \
+            -t ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REGISTRY_USER }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }} \
             -f ./Dockerfile \
             .
-          echo "IMAGE_NAME=${{ env.IMAGE_NAME }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REGISTRY_USER }}/${{ env.APP_NAME }}" >> $GITHUB_ENV
           echo "IMAGE_TAGS=${{ env.IMAGE_TAGS }}" >> $GITHUB_ENV
+
 
       # Step 4: Push Docker Image to Registry
       - name: Push to Registry
@@ -49,13 +50,13 @@ jobs:
           tags: ${{ env.IMAGE_TAGS }}
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.IMAGE_REGISTRY_USER }}
-          password: ${{ env.IMAGE_REGISTRY_PASSWORD }}
+          password: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
 
       # Step 5: Install OpenShift CLI
       - name: Install OpenShift CLI
         uses: redhat-actions/openshift-tools-installer@v1
         with:
-          oc: 4.6.0 # You can update this version as needed
+          oc: 4.6.0 # Update version if needed
 
       # Step 6: Log in to OpenShift
       - name: Log in to OpenShift
