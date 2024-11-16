@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Initialize the Go module inside the Docker container
 
-RUN go mod init drink || true
+RUN go mod init drinks || true
 
 # Download dependencies. go mod tidy will also create go.mod and go.sum if not already present
 COPY . .
@@ -31,12 +31,6 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs ./docs
 
-# Ensure the binary is executable
-RUN chmod +x ./main
-
-# Set the correct user if running under OpenShift
-RUN chown 1001:1001 ./main
-USER 1001
 
 # Expose port 8082 to the outside world
 EXPOSE 8082
