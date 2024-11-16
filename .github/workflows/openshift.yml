@@ -72,14 +72,16 @@ jobs:
           oc delete all --selector app=${{ env.APP_NAME }} --ignore-not-found
 
       # Step 9: Deploy and Expose OpenShift App
-      - name: Deploy and Expose OpenShift App
+      - name: Deploy OpenShift App
         run: |
           oc new-app ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REGISTRY_USER }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }} \
             --name=${{ env.APP_NAME }} \
-            --port=${{ env.APP_PORT }} \
             -n ${{ env.OPENSHIFT_NAMESPACE }}
 
-      # Step 10: Inject Environment Variables
+          # Expose the app on port 8082
+          oc expose svc/${{ env.APP_NAME }} --port=${{ env.APP_PORT }} -n ${{ env.OPENSHIFT_NAMESPACE }}
+
+      # Step 10: Inject Environment Variables into Deployment
       - name: Inject Environment Variables into Deployment
         run: |
           oc set env deployment/${{ env.APP_NAME }} \
