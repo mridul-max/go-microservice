@@ -23,7 +23,7 @@ func NewPatientService() *PatientService {
 	}
 }
 
-// GetPatientDailyLimit retrieves the daily limit for a patient by Id
+// GetPatientDailygoal retrieves the daily goal for a patient by Id
 func (ps *PatientService) GetPatientDailyGoal(ctx context.Context, Id string) (int, error) {
 	// Cosmos DB SQL-like query to find the patient by Id
 	query := fmt.Sprintf("SELECT * FROM c WHERE c.Id = '%s'", Id)
@@ -51,5 +51,5 @@ func (ps *PatientService) GetPatientDailyGoal(ctx context.Context, Id string) (i
 		return 0, fmt.Errorf("patient with Id %s not found", Id)
 	}
 
-	return patient.DailyGoal, nil // Assuming DailyLimit is part of your PatientDTO
+	return patient.DailyGoal, nil // Assuming Dailygoal is part of your PatientDTO
 }

@@ -8,15 +8,18 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/joho/godotenv"
+	_ "drinks/docs" // Import the generated Swagger docs
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
 	// Load environment variables from .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
+	//for local test
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatalf("Error loading .env file")
+	// }
 
 	// Initialize Cosmos DB connection
 	config.InitCosmosDB()
@@ -28,7 +31,10 @@ func main() {
 	// Setup the application routes
 	router := routes.SetupRoutes(patientController)
 
-	// Start the HTTP server on port 8080
+	// Serve Swagger UI
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+
+	// Start the HTTP server on port 8082
 	log.Println("Server is running on port 8082")
 	log.Fatal(http.ListenAndServe(":8082", router))
 }
