@@ -27,7 +27,7 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up Docker Buildx
+      # Step 2: Set up Docker Buildx (for multi-platform builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -41,7 +41,7 @@ jobs:
           echo "IMAGE_NAME=${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REGISTRY_USER }}/${{ env.APP_NAME }}" >> $GITHUB_ENV
           echo "IMAGE_TAGS=${{ env.IMAGE_TAGS }}" >> $GITHUB_ENV
 
-      # Step 4: Docker Login
+      # Step 4: Docker Login (login to the Docker registry)
       - name: Docker Login
         run: |
           echo ${{ secrets.IMAGE_REGISTRY_PASSWORD }} | docker login ${{ env.IMAGE_REGISTRY }} -u ${{ env.IMAGE_REGISTRY_USER }} --password-stdin
@@ -51,11 +51,11 @@ jobs:
         run: |
           docker push ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REGISTRY_USER }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }}
 
-      # Step 6: Install OpenShift CLI
+      # Step 6: Install OpenShift CLI (oc)
       - name: Install OpenShift CLI
         uses: redhat-actions/openshift-tools-installer@v1
         with:
-          oc: 4.6.0  # Update version if needed
+          oc: 4.6.0  # Ensure this is the correct version of oc you need
 
       # Step 7: Log in to OpenShift
       - name: Log in to OpenShift
@@ -73,30 +73,31 @@ jobs:
 
       # Step 9: Deploy and Expose OpenShift App
       - name: Deploy and Expose OpenShift App
-        uses: redhat-actions/oc-new-app@v1
-        with:
-          app_name: ${{ env.APP_NAME }}
-          image: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAGS }}
-          namespace: ${{ env.OPENSHIFT_NAMESPACE }}
-          port: ${{ env.APP_PORT }}
+        run: |
+          oc new-app ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REGISTRY_USER }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }} \
+            --name=${{ env.APP_NAME }} \
+            --port=${{ env.APP_PORT }} \
+            -n ${{ env.OPENSHIFT_NAMESPACE }}
 
       # Step 10: Inject Environment Variables
-      - name: Inject Environment Variables
+      - name: Inject Environment Variables into Deployment
         run: |
           oc set env deployment/${{ env.APP_NAME }} \
             DBURI=${{ secrets.DBURI }} \
             DBKEY=${{ secrets.DBKEY }} \
-            DBNAME=${{ secrets.DBNAME }}
+            DBNAME=${{ secrets.DBNAME }} \
+            -n ${{ env.OPENSHIFT_NAMESPACE }}
 
-      # Step 11: Wait for Deployment Rollout
+      # Step 11: Wait for Deployment Rollout to Complete
       - name: Wait for Deployment Rollout
         run: |
-          oc rollout status deployment/${{ env.APP_NAME }} --watch
+          oc rollout status deployment/${{ env.APP_NAME }} -w -n ${{ env.OPENSHIFT_NAMESPACE }}
 
-      # Step 12: Print Application URL
+      # Step 12: Print Application URL (Once the app is exposed)
       - name: Print Application URL
         run: |
-          ROUTE=$(oc get route ${{ env.APP_NAME }} -o jsonpath='{.spec.host}')
+          ROUTE=$(oc get route ${{
+            env.APP_NAME }} -o jsonpath='{.spec.host}' -n ${{ env.OPENSHIFT_NAMESPACE }})
           echo "========================="
           echo "Your app is available at: http://$ROUTE"
           echo "========================="
