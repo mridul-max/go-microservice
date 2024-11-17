@@ -7,7 +7,7 @@ WORKDIR /app
 # Initialize the Go module inside the Docker container
 RUN go mod init drinks || true
 
-# Download dependencies
+# Download dependencies. go mod tidy will also create go.mod and go.sum if not already present
 COPY . .
 RUN go mod tidy
 
@@ -19,24 +19,20 @@ RUN swag init
 
 # Build the Go app
 RUN go build -o main .
-
-# Set executable permissions in the build stage to ensure they're carried over
-RUN chmod +x ./main
+# Set executable permission for the binary
+RUN chmod +x /app/main
 
 # Start a new stage from scratch
-FROM alpine:latest  
+FROM alpine:latest 
 
 # Set the working directory in the final image
 WORKDIR /root/
 
-# Copy the Pre-built binary file and Swagger docs from the builder stage
+# Copy the Pre-built binary file from the builder stage
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs ./docs
 
-# Explicitly set execute permissions in the final stage
-RUN chmod +x ./main
-
-# Expose port 8082 to the outside world
+# Expose port 8080 to the outside world
 EXPOSE 8082
 
 # Command to run the executable
