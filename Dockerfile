@@ -37,4 +37,4 @@ COPY --from=builder /app/docs ./docs
 EXPOSE 8082
 
 # Use ENTRYPOINT to define the main executable
-ENTRYPOINT ["./main"]
+ENTRYPOINT ["/main"]
