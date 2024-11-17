@@ -21,7 +21,8 @@ RUN swag init
 RUN go build -o main .
 
 # Set executable permission for the binary
-RUN chmod +x /app/main
+RUN chmod +x ./main
+RUN chown 1001090000:1001090000 ./main
 
 # Start a new stage from scratch
 FROM alpine:latest
@@ -37,4 +38,4 @@ COPY --from=builder /app/docs ./docs
 EXPOSE 8082
 
 # Use ENTRYPOINT to define the main executable
-ENTRYPOINT ["/main"]
+CMD ["./main"]
