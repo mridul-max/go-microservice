@@ -15,7 +15,7 @@ env:
   IMAGE_REGISTRY: "docker.io"  # Docker Hub or other registry
   IMAGE_REGISTRY_USER: "mridul017"
   IMAGE_REGISTRY_PASSWORD: ${{ secrets.IMAGE_REGISTRY_PASSWORD }}
-  IMAGE_TAGS: "latest"  # Simplified tagging for deployments
+  IMAGE_TAGS: ${{ github.sha }}  # Simplified tagging for deployments
 
 jobs:
   build-and-deploy:
