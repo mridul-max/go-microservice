@@ -14,24 +14,36 @@ RUN go mod tidy
 # Install Swagger CLI
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 
-# Run the swag init command to generate Swagger docs
+# Generate Swagger docs
 RUN swag init
 
-# Build the Go app
-RUN go build -o main .
+# Build the Go app as a statically linked binary
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
 # Start a new stage from scratch
 FROM alpine:latest
 
+# Create a non-root user and group
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 # Set the working directory in the final image
-WORKDIR /root/
+WORKDIR /app
 
-# Copy the Pre-built binary file from the builder stage
-COPY --from=builder /app/main .
-COPY --from=builder /app/docs ./docs
+# Copy the Pre-built binary file and Swagger docs
+COPY --from=builder /app/main /usr/local/bin/main
+COPY --from=builder /app/docs /app/docs
 
-# Expose port 8082 to the outside world
+# Ensure the binary has executable permissions
+RUN chmod +x /usr/local/bin/main
+
+# Change ownership to the non-root user
+RUN chown -R appuser:appgroup /app
+
+# Switch to the non-root user
+USER appuser
+
+# Expose the application port
 EXPOSE 8082
 
 # Command to run the executable
-CMD ["./main"]
+CMD ["main"]
