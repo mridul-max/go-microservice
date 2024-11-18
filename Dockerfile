@@ -22,7 +22,6 @@ RUN go build -o main .
 
 # Set executable permission for the binary
 RUN chmod +x ./main
-RUN chown 1001090000:1001090000 ./main
 
 # Start a new stage from scratch
 FROM alpine:latest
@@ -34,8 +33,13 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs ./docs
 
+# Set default environment variables (optional and can be overridden)
+ENV DBURI=""
+ENV DBKEY=""
+ENV DBNAME=""
+
 # Expose port 8082 to the outside world
 EXPOSE 8082
 
 # Use ENTRYPOINT to define the main executable
-CMD ["./main"]
+ENTRYPOINT ["./main"]
