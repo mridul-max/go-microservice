@@ -15,3 +15,5 @@ docs/
 # Ignore Docker-related files (if not all should be pushed)
 docker-compose.yml
 *.env
+
+go.mod
