@@ -1,13 +1,13 @@
-# Use the official Golang image as the base image
-FROM golang:1.23-alpine AS builder
+# Use a newer Go version as the base image
+FROM golang:1.22-alpine AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
 # Initialize the Go module inside the Docker container
-RUN go mod init drinks || true
+RUN go mod init drink || true
 
-# Download dependencies. go mod tidy will also create go.mod and go.sum if not already present
+# Download dependencies
 COPY . .
 RUN go mod tidy
 
@@ -30,11 +30,8 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs ./docs
 
-# Set executable permission after copy
-RUN chmod +x /root/main
-
 # Expose port 8082 to the outside world
 EXPOSE 8082
 
-# Use ENTRYPOINT to define the main executable
+# Command to run the executable
 CMD ["./main"]
