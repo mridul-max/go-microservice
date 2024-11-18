@@ -30,8 +30,8 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs ./docs
 
-# Set executable permission for the binary
-RUN chmod +x ./main
+# Set executable permission after copy
+RUN chmod +x /root/main
 
 # Expose port 8082 to the outside world
 EXPOSE 8082
