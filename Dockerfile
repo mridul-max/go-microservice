@@ -20,9 +20,6 @@ RUN swag init
 # Build the Go app
 RUN go build -o main .
 
-# Set executable permission for the binary
-RUN chmod +x ./main
-
 # Start a new stage from scratch
 FROM alpine:latest
 
@@ -33,9 +30,11 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs ./docs
 
+# Set executable permission for the binary
+RUN chmod +x ./main
 
 # Expose port 8082 to the outside world
 EXPOSE 8082
 
 # Use ENTRYPOINT to define the main executable
-ENTRYPOINT ["./main"]
+CMD ["./main"]
