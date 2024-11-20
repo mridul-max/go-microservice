@@ -10,17 +10,16 @@ import (
 
 	_ "drinks/docs" // Import the generated Swagger docs
 
-	"github.com/joho/godotenv"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
 	// Load environment variables from .env file
 	//for local test
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatalf("Error loading .env file")
+	// }
 
 	// Initialize Cosmos DB connection
 	config.InitCosmosDB()
