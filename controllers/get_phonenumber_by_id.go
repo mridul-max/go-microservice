@@ -41,7 +41,6 @@ func (pc *GetPatientPhoneNumberByIdController) GetPatientPhoneNumberById(w http.
 		return
 	}
 
-	// Respond with the daily limit
 	response := map[string]string{"PhoneNumber": patientphonenumber}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

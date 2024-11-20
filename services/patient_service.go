@@ -24,7 +24,7 @@ func NewPatientService() *PatientService {
 }
 
 // GetPatientDailygoal retrieves the daily goal for a patient by Id
-func (ps *PatientService) GetPatientDailyGoal(ctx context.Context, Id string) (int, error) {
+func (ps *PatientService) GetPatientDailyGoal(ctx context.Context, Id string) (float64, error) {
 	// Cosmos DB SQL-like query to find the patient by Id
 	query := fmt.Sprintf("SELECT * FROM c WHERE c.Id = '%s'", Id)
 	partitionKey := azcosmos.NewPartitionKeyString(Id)
@@ -54,7 +54,7 @@ func (ps *PatientService) GetPatientDailyGoal(ctx context.Context, Id string) (i
 	return patient.DailyGoal, nil // Assuming Dailygoal is part of your PatientDTO
 }
 
-// GetDrinkRecordById retrieves a drink record by its ID
+// GetDrinkRecordById retrieves a phone number by its ID
 func (ps *PatientService) GetPatientPhoneNumberById(ctx context.Context, Id string) (string, error) {
 	// Cosmos DB SQL-like query to find the patient by Id
 	query := fmt.Sprintf("SELECT * FROM c WHERE c.Id = '%s'", Id)
@@ -82,5 +82,5 @@ func (ps *PatientService) GetPatientPhoneNumberById(ctx context.Context, Id stri
 		return "", fmt.Errorf("patient with Id %s not found", Id)
 	}
 
-	return patient.PhoneNumber, nil // Assuming Dailygoal is part of your PatientDTO
+	return patient.PhoneNumber, nil
 }

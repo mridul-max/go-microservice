@@ -42,7 +42,7 @@ func (pc *PatientController) GetPatientDailyGoal(w http.ResponseWriter, r *http.
 	}
 
 	// Respond with the daily limit
-	response := map[string]int{"Dailygoal": dailygoal}
+	response := map[string]float64{"Dailygoal": dailygoal}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

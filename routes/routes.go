@@ -13,7 +13,6 @@ func SetupRoutes(patientController *controllers.PatientController, getPatientPho
 	// Get daily goal for a patient by Id
 	router.HandleFunc("/patients/dailygoal", patientController.GetPatientDailyGoal).Methods(http.MethodGet)
 
-	// Drink record routes
 	router.HandleFunc("/patient/phoneNumber", getPatientPhoneNumberByIdController.GetPatientPhoneNumberById).Methods(http.MethodGet)
 
 	return router
