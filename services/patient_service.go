@@ -16,7 +16,7 @@ type PatientService struct {
 
 func NewPatientService() *PatientService {
 	// Load the already initialized Cosmos DB client
-	client := config.GetCosmosClient()
+	client := config.GetContainerClient("Patients")
 
 	return &PatientService{
 		client: client,

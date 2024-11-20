@@ -8,7 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 )
 
-var cosmosClient *azcosmos.ContainerClient
+var (
+	cosmosClientMap map[string]*azcosmos.ContainerClient // Map to hold container clients
+)
 
 // Config holds the application's database configuration.
 type Config struct {
@@ -34,7 +36,6 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("environment variable DBNAME is not set")
 	}
 
-	// Return the populated configuration struct
 	return &Config{
 		DBURI:  dbURI,
 		DBKey:  dbKey,
@@ -42,43 +43,51 @@ func LoadConfig() (*Config, error) {
 	}, nil
 }
 
-// InitCosmosDB initializes the Cosmos DB client using the provided configuration.
+// InitCosmosDB initializes the Cosmos DB client and containers dynamically.
 func InitCosmosDB() {
 	cfg, err := LoadConfig()
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Set up Cosmos DB client options
+	// Create the Cosmos DB credential
 	credential, err := azcosmos.NewKeyCredential(cfg.DBKey)
 	if err != nil {
 		log.Fatalf("Failed to create key credential: %v", err)
 	}
 
+	// Create the Cosmos DB client
 	client, err := azcosmos.NewClientWithKey(cfg.DBURI, credential, nil)
 	if err != nil {
 		log.Fatalf("Failed to create Cosmos client: %v", err)
 	}
 
-	// Define the database and container (patient collection)
+	// Initialize the map for container clients
+	cosmosClientMap = make(map[string]*azcosmos.ContainerClient)
+
+	// Define the database client
 	databaseClient, err := client.NewDatabase(cfg.DBName)
 	if err != nil {
 		log.Fatalf("Failed to create database client: %v", err)
 	}
 
-	containerClient, err := databaseClient.NewContainer("Patients")
-	if err != nil {
-		log.Fatalf("Failed to create container client: %v", err)
+	// Initialize containers: "Patients" and "DrinkRecords"
+	containers := []string{"Patients", "DrinkRecords"}
+	for _, containerName := range containers {
+		containerClient, err := databaseClient.NewContainer(containerName)
+		if err != nil {
+			log.Fatalf("Failed to create container client for %s: %v", containerName, err)
+		}
+		cosmosClientMap[containerName] = containerClient
 	}
 
-	cosmosClient = containerClient
-	log.Println("Successfully connected to Azure Cosmos DB")
+	log.Println("Successfully connected to Azure Cosmos DB and initialized containers")
 }
 
-// GetCosmosClient returns the initialized Cosmos DB client.
-func GetCosmosClient() *azcosmos.ContainerClient {
-	if cosmosClient == nil {
-		log.Fatal("Cosmos DB client is not initialized")
+// GetContainerClient returns the Cosmos DB container client for a specified container name.
+func GetContainerClient(containerName string) *azcosmos.ContainerClient {
+	if cosmosClientMap == nil || cosmosClientMap[containerName] == nil {
+		log.Fatalf("Cosmos DB client for container %s is not initialized", containerName)
 	}
-	return cosmosClient
+	return cosmosClientMap[containerName]
 }
