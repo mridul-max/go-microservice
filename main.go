@@ -26,10 +26,13 @@ func main() {
 
 	// Initialize the patient service and controller
 	patientService := services.NewPatientService()
-	patientController := controllers.NewPatientController(patientService)
+	drinkRecordService := services.NewDrinkRecordService()
 
-	// Setup the application routes
-	router := routes.SetupRoutes(patientController)
+	patientController := controllers.NewPatientController(patientService)
+	drinkRecordController := controllers.NewDrinkRecordController(drinkRecordService)
+
+	// Set up routes with controllers
+	router := routes.SetupRoutes(patientController, drinkRecordController)
 
 	// Serve Swagger UI
 	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
