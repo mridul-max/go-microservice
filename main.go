@@ -10,29 +10,29 @@ import (
 
 	_ "drinks/docs" // Import the generated Swagger docs
 
+	"github.com/joho/godotenv"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
 	// Load environment variables from .env file
 	//for local test
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	log.Fatalf("Error loading .env file")
-	// }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
 
 	// Initialize Cosmos DB connection
 	config.InitCosmosDB()
 
 	// Initialize the patient service and controller
 	patientService := services.NewPatientService()
-	drinkRecordService := services.NewDrinkRecordService()
 
 	patientController := controllers.NewPatientController(patientService)
-	drinkRecordController := controllers.NewDrinkRecordController(drinkRecordService)
+	getPatientPhoneNumberByIdController := controllers.NewGetPatientPhoneNumberByIdController(patientService)
 
 	// Set up routes with controllers
-	router := routes.SetupRoutes(patientController, drinkRecordController)
+	router := routes.SetupRoutes(patientController, getPatientPhoneNumberByIdController)
 
 	// Serve Swagger UI
 	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)

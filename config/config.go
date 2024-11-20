@@ -72,7 +72,7 @@ func InitCosmosDB() {
 	}
 
 	// Initialize containers: "Patients" and "DrinkRecords"
-	containers := []string{"Patients", "DrinkRecords"}
+	containers := []string{"Patients"}
 	for _, containerName := range containers {
 		containerClient, err := databaseClient.NewContainer(containerName)
 		if err != nil {
