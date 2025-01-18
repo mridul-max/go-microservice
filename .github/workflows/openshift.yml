@@ -83,7 +83,15 @@ jobs:
             -n ${{ env.OPENSHIFT_NAMESPACE }}
           
           # Scale the deployment to 1 replica
-          oc scale deployment/${{ env.APP_NAME }} --replicas=1 -n ${{ env.OPENSHIFT_NAMESPACE }}
+          oc scale deployment/${{ env.APP_NAME }} --replicas=0 -n ${{ env.OPENSHIFT_NAMESPACE }}
+          
+          oc expose svc/${{ env.APP_NAME }} --port=${{ env.APP_PORT }} -n ${{ env.OPENSHIFT_NAMESPACE }}
+          oc patch route/${{ env.APP_NAME }} -n ${{ env.OPENSHIFT_NAMESPACE }} -p '{"spec":{"tls":{"termination":"edge"}}}'
+
+          # Force HTTP to HTTPS redirect
+          oc annotate route/${{ env.APP_NAME }} \
+            haproxy.router.openshift.io/redirect-to-https=true \
+            -n ${{ env.OPENSHIFT_NAMESPACE }}
 
       # Step 10: Inject Environment Variables into Deployment
       - name: Inject Environment Variables into Deployment
