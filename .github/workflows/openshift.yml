@@ -69,7 +69,10 @@ jobs:
       # Step 8: Delete Existing Resources (if any)
       - name: Delete Existing Resources
         run: |
-          oc delete all --selector app=${{ env.APP_NAME }} --ignore-not-found
+          oc delete route/${{ env.APP_NAME }} --ignore-not-found -n ${{ env.OPENSHIFT_NAMESPACE }}
+          oc delete service/${{ env.APP_NAME }} --ignore-not-found -n ${{ env.OPENSHIFT_NAMESPACE }}
+          oc delete deployment/${{ env.APP_NAME }} --ignore-not-found -n ${{ env.OPENSHIFT_NAMESPACE }}
+          oc delete replicasets -l app=${{ env.APP_NAME }} -n ${{ env.OPENSHIFT_NAMESPACE }} --ignore-not-found
 
       # Step 9: Deploy and Expose OpenShift App
       - name: Deploy OpenShift App
@@ -78,6 +81,14 @@ jobs:
             --name=${{ env.APP_NAME }} \
             -n ${{ env.OPENSHIFT_NAMESPACE }}
 
+      # Configure Horizontal Pod Autoscaler
+      - name: Configure Horizontal Pod Autoscaler
+        run: |
+          if oc get hpa ${{ env.APP_NAME }} -n ${{ env.OPENSHIFT_NAMESPACE }} &>/dev/null; then
+            oc delete hpa ${{ env.APP_NAME }} -n ${{ env.OPENSHIFT_NAMESPACE }}
+          fi
+          oc autoscale deployment/${{ env.APP_NAME }} --min=1 --max=2 --cpu-percent=50 -n ${{ env.OPENSHIFT_NAMESPACE }}
+          
           # Expose the app on port 8082 with TLS edge termination for HTTPS
           oc expose svc/${{ env.APP_NAME }} --port=${{ env.APP_PORT }} -n ${{ env.OPENSHIFT_NAMESPACE }}
           oc patch route/${{ env.APP_NAME }} -n ${{ env.OPENSHIFT_NAMESPACE }} -p '{"spec":{"tls":{"termination":"edge"}}}'
