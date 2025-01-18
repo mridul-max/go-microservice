@@ -80,6 +80,11 @@ jobs:
           oc new-app ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REGISTRY_USER }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }} \
             --name=${{ env.APP_NAME }} \
             -n ${{ env.OPENSHIFT_NAMESPACE }}
+                  # Set resource requests and limits
+                  
+      - name: Set resource requests and limits
+        run: |
+          oc set resources deployment/${{ env.APP_NAME }} --requests=cpu=100m,memory=100Mi --limits=cpu=1,memory=1Gi -n ${{ env.OPENSHIFT_NAMESPACE }}
 
       # Configure Horizontal Pod Autoscaler
       - name: Configure Horizontal Pod Autoscaler
