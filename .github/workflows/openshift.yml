@@ -77,32 +77,13 @@ jobs:
       # Step 9: Deploy and Expose OpenShift App
       - name: Deploy OpenShift App
         run: |
+          # Deploy the app
           oc new-app ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_REGISTRY_USER }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAGS }} \
             --name=${{ env.APP_NAME }} \
             -n ${{ env.OPENSHIFT_NAMESPACE }}
-                  # Set resource requests and limits
-                  
-      - name: Set resource requests and limits
-        run: |
-          oc set resources deployment/${{ env.APP_NAME }} --requests=cpu=100m,memory=100Mi --limits=cpu=1,memory=1Gi -n ${{ env.OPENSHIFT_NAMESPACE }}
-
-      # Configure Horizontal Pod Autoscaler
-      - name: Configure Horizontal Pod Autoscaler
-        run: |
-          if oc get hpa ${{ env.APP_NAME }} -n ${{ env.OPENSHIFT_NAMESPACE }} &>/dev/null; then
-            oc delete hpa ${{ env.APP_NAME }} -n ${{ env.OPENSHIFT_NAMESPACE }}
-          fi
-          oc autoscale deployment/${{ env.APP_NAME }} --min=1 --max=2 --cpu-percent=50 -n ${{ env.OPENSHIFT_NAMESPACE }}
           
-          # Expose the app on port 8082 with TLS edge termination for HTTPS
-          oc expose svc/${{ env.APP_NAME }} --port=${{ env.APP_PORT }} -n ${{ env.OPENSHIFT_NAMESPACE }}
-          oc patch route/${{ env.APP_NAME }} -n ${{ env.OPENSHIFT_NAMESPACE }} -p '{"spec":{"tls":{"termination":"edge"}}}'
-
-          # Force HTTP to HTTPS redirect
-          oc annotate route/${{ env.APP_NAME }} \
-            haproxy.router.openshift.io/redirect-to-https=true \
-            -n ${{ env.OPENSHIFT_NAMESPACE }}
-
+          # Scale the deployment to 1 replica
+          oc scale deployment/${{ env.APP_NAME }} --replicas=1 -n ${{ env.OPENSHIFT_NAMESPACE }}
 
       # Step 10: Inject Environment Variables into Deployment
       - name: Inject Environment Variables into Deployment
@@ -121,8 +102,7 @@ jobs:
       # Step 12: Print Application URL (Once the app is exposed)
       - name: Print Application URL
         run: |
-          ROUTE=$(oc get route ${{
-            env.APP_NAME }} -o jsonpath='{.spec.host}' -n ${{ env.OPENSHIFT_NAMESPACE }})
+          ROUTE=$(oc get route ${{ env.APP_NAME }} -o jsonpath='{.spec.host}' -n ${{ env.OPENSHIFT_NAMESPACE }})
           echo "========================="
           echo "Your app is available at: http://$ROUTE"
           echo "========================="
